@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { View, Button, Image, FlatList, Text, TouchableOpacity, StyleSheet } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import { View, Button, Image, FlatList, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import SHA1 from "crypto-js/sha1";
 
 export default function App() {
@@ -13,58 +11,57 @@ export default function App() {
   const API_KEY = "766413485274832";
   const API_SECRET = "Gahneq8iGXHBkaUr3p98YlSjmIU";
 
-  const pickImage = async () => {
-    console.log(">>> Abrindo seletor de arquivos...");
-
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ["image/*"],
-      copyToCacheDirectory: true,
-    });
-
-    console.log("RESULTADO DO PICKER:", result);
-
-    if (!result.canceled && result.assets?.length > 0) {
-      const uri = result.assets[0].uri;
-      uploadImage(uri);
-    } else {
-      alert("Nenhuma imagem selecionada.");
+  const handleFileInput = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      uploadImage(file);
     }
   };
 
-  const uploadImage = async (uri) => {
+  const pickImage = () => {
+    if (Platform.OS === "web") {
+      document.getElementById("fileInput").click();
+    } else {
+      alert("No mobile use o DocumentPicker");
+    }
+  };
+
+  const uploadImage = async (file) => {
     try {
       setUploading(true);
 
-      const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result.split(",")[1];
+        const publicId = `ifpe_${Date.now()}`;
 
-      const publicId = `aluna_${Date.now()}`;
+        const data = new FormData();
+        data.append("file", `data:image/jpg;base64,${base64}`);
+        data.append("public_id", publicId);
+        data.append("upload_preset", UPLOAD_PRESET);
+        data.append("folder", "aluna");
+        data.append("tags", "alunaaula");
 
-      const data = new FormData();
-      data.append("file", `data:image/jpg;base64,${base64}`);
-      data.append("public_id", publicId);
-      data.append("upload_preset", UPLOAD_PRESET);
-      data.append("folder", "aluna");
-      data.append("tags", "alunaaula");
+        const upload = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+          method: "POST",
+          body: data,
+        });
 
-      const upload = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-        method: "POST",
-        body: data,
-      });
+        const result = await upload.json();
 
-      const result = await upload.json();
-      console.log("RESULTADO DO UPLOAD:", result);
+        if (result.secure_url) {
+          setImages((prev) => [...prev, { url: result.secure_url, public_id: result.public_id }]);
+        } else {
+          alert("⚠ Erro ao enviar imagem.");
+        }
 
-      if (result.secure_url) {
-        setImages((prev) => [...prev, { url: result.secure_url, public_id: result.public_id }]);
-      } else {
-        alert("⚠ Erro ao enviar imagem.");
-      }
+        setUploading(false);
+      };
+
+      reader.readAsDataURL(file);
     } catch (error) {
       console.log("❌ Erro no upload:", error);
       alert("Erro no upload.");
-    } finally {
       setUploading(false);
     }
   };
@@ -100,8 +97,17 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      {/* input invisível pro navegador */}
+      <input
+        id="fileInput"
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleFileInput}
+      />
+
       <Button title={uploading ? "Enviando..." : "Selecionar Imagem"} onPress={pickImage} />
-      
+
       <FlatList
         data={images}
         keyExtractor={(item) => item.public_id}
