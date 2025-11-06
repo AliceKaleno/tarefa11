@@ -9,7 +9,7 @@ export default function App() {
   const [uploading, setUploading] = useState(false);
 
   const CLOUD_NAME = "dx1m1r9bu";
-  const UPLOAD_PRESET = "atividade11";
+  const UPLOAD_PRESET = "atividadeprog";
   const API_KEY = "766413485274832";
   const API_SECRET = "Gahneq8iGXHBkaUr3p98YlSjmIU";
 
@@ -39,14 +39,14 @@ export default function App() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      const publicId = `ifpe_${Date.now()}`;
+      const publicId = `aluna_${Date.now()}`;
 
       const data = new FormData();
       data.append("file", `data:image/jpg;base64,${base64}`);
       data.append("public_id", publicId);
       data.append("upload_preset", UPLOAD_PRESET);
-      data.append("folder", "ifpe");
-      data.append("tags", "ifpeaula");
+      data.append("folder", "aluna");
+      data.append("tags", "alunaaula");
 
       const upload = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
         method: "POST",
