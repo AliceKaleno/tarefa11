@@ -8,13 +8,11 @@ export default function App() {
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
 
-  // ✅ SUAS CREDENCIAIS CLOUDINARY
   const CLOUD_NAME = "dx1m1r9bu";
   const UPLOAD_PRESET = "atividade11";
   const API_KEY = "766413485274832";
   const API_SECRET = "Gahneq8iGXHBkaUr3p98YlSjmIU";
 
-  // ✅ Selecionar imagem (compatível Samsung A10s)
   const pickImage = async () => {
     console.log(">>> Abrindo seletor de arquivos...");
 
@@ -25,7 +23,6 @@ export default function App() {
 
     console.log("RESULTADO DO PICKER:", result);
 
-    // ✅ Agora pegamos corretamente:
     if (!result.canceled && result.assets?.length > 0) {
       const uri = result.assets[0].uri;
       uploadImage(uri);
@@ -34,7 +31,6 @@ export default function App() {
     }
   };
 
-  // ✅ Upload para Cloudinary
   const uploadImage = async (uri) => {
     try {
       setUploading(true);
@@ -73,7 +69,6 @@ export default function App() {
     }
   };
 
-  // ✅ Excluir imagem do Cloudinary
   const deleteImage = async (publicId) => {
     try {
       const timestamp = Math.floor(Date.now() / 1000);
